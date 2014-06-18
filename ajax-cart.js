@@ -307,6 +307,7 @@ var ajaxCart = {
         if ($('.cart_block_list').hasClass('collapsed'))
             this.expand();
         //send the ajax request to the server
+        console.log('controller=cart&add=1&ajax=true&qty=' + ((quantity && quantity != null) ? quantity : '1') + '&id_product=' + idProduct + '&token=' + static_token + ((parseInt(idCombination) && idCombination != null) ? '&ipa=' + parseInt(idCombination) : ''));
         $.ajax({
             type: 'POST',
             headers: {"cache-control": "no-cache"},
@@ -323,7 +324,14 @@ var ajaxCart = {
 
                 if (!jsonData.hasError)
                 {
+
+                    window.parent.ajaxCart.addpack(ajax_product, ajax_pack);
+                    
                     window.parent.ajaxCart.updateCartInformation(jsonData, addedFromProductPage);
+                    
+                    if (typeof ajax_product === 'undefined') {
+                        ajaxCart.refresh();
+                    }
 
                     if (jsonData.crossSelling)
                         $('.crossseling').html(jsonData.crossSelling);
@@ -373,9 +381,13 @@ var ajaxCart = {
                     $(callerElement).removeProp('disabled');
             }
         });
-
-// add from rpmoreproductscontentmoduleexpand
+   },
+    // add from rpmoreproductscontentmoduleexpand
+    addpack: function(
+            ajax_product,
+            ajax_pack) {
         if (typeof ajax_product !== 'undefined') {
+            console.log('product=' + ajax_product + '&pack=' + ajax_pack);
             $.ajax({
                 type: 'POST',
                 headers: {"cache-control": "no-cache"},
@@ -393,8 +405,7 @@ var ajaxCart = {
                     console.log(XMLHttpRequest);
                 }
             });
-        }
-
+    }
     },
     //remove a product from the cart via ajax
     remove: function(idProduct, idCombination, customizationId, idAddressDelivery) {
