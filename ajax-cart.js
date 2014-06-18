@@ -25,11 +25,11 @@
 $(document).ready(function() {
     ajaxCart.overrideButtonsInThePage();
 
-    $(document).on('click', '.block_cart_collapse', function(e) {
+    $(document).on('click touchstart', '.block_cart_collapse', function(e) {
         e.preventDefault();
         ajaxCart.collapse();
     });
-    $(document).on('click', '.block_cart_expand', function(e) {
+    $(document).on('click touchstart', '.block_cart_expand', function(e) {
         e.preventDefault();
         ajaxCart.expand();
     });
@@ -48,7 +48,7 @@ $(document).ready(function() {
 
     if ('ontouchstart' in document.documentElement)
     {
-        $('.shopping_cart > a:first').on('click', function(e) {
+        $('.shopping_cart > a:first').on('click touchstart', function(e) {
             e.preventDefault();
         });
 
@@ -87,6 +87,17 @@ $(document).ready(function() {
             }
     );
 
+    $(document).mouseup(function (e)
+    {
+        var container = $("#header .cart_block");
+
+        if (!container.is(e.target) // if the target of the click isn't the container...
+            && container.has(e.target).length === 0) // ... nor a descendant of the container
+        {
+            container.hide();
+        }
+    });
+
     $(document).on('click', '.delete_voucher', function(e) {
         e.preventDefault();
         $.ajax({
@@ -111,7 +122,7 @@ $(document).ready(function() {
         $(this).closest("form").get(0).submit();
     });
 
-    $(document).on('click', '#layer_cart .cross, #layer_cart .continue, .layer_cart_overlay', function(e) {
+    $(document).on('click touchstart', '#layer_cart .cross, #layer_cart .continue, .layer_cart_overlay', function(e) {
         e.preventDefault();
         $('.layer_cart_overlay').hide();
         $('#layer_cart').fadeOut('fast');
@@ -126,20 +137,20 @@ var ajaxCart = {
     //override every button in the page in relation to the cart
     overrideButtonsInThePage: function() {
         //for every 'add' buttons...
-        $(document).on('click', '.ajax_add_to_cart_button', function(e) {
+        $(document).on('click touchstart', '.ajax_add_to_cart_button', function(e) {
             e.preventDefault();
             var idProduct = $(this).data('id-product');
             if ($(this).prop('disabled') != 'disabled')
                 ajaxCart.add(idProduct, null, false, this);
         });
         //for product page 'add' button...
-        $(document).on('click', '#add_to_cart button', function(e) {
+        $(document).on('click touchstart', '#add_to_cart button', function(e) {
             e.preventDefault();
             ajaxCart.add($('#product_page_product_id').val(), $('#idCombination').val(), true, null, $('#quantity_wanted').val(), null);
         });
 
         //for 'delete' buttons in the cart block...
-        $(document).on('click', '.cart_block_list .ajax_cart_block_remove_link', function(e) {
+        $(document).on('click touchstart', '.cart_block_list .ajax_cart_block_remove_link', function(e) {
             e.preventDefault();
             // Customized product management
             var customizationId = 0;
@@ -307,7 +318,6 @@ var ajaxCart = {
         if ($('.cart_block_list').hasClass('collapsed'))
             this.expand();
         //send the ajax request to the server
-        console.log('controller=cart&add=1&ajax=true&qty=' + ((quantity && quantity != null) ? quantity : '1') + '&id_product=' + idProduct + '&token=' + static_token + ((parseInt(idCombination) && idCombination != null) ? '&ipa=' + parseInt(idCombination) : ''));
         $.ajax({
             type: 'POST',
             headers: {"cache-control": "no-cache"},
@@ -324,14 +334,7 @@ var ajaxCart = {
 
                 if (!jsonData.hasError)
                 {
-
-                    window.parent.ajaxCart.addpack(ajax_product, ajax_pack);
-                    
                     window.parent.ajaxCart.updateCartInformation(jsonData, addedFromProductPage);
-                    
-                    if (typeof ajax_product === 'undefined') {
-                        ajaxCart.refresh();
-                    }
 
                     if (jsonData.crossSelling)
                         $('.crossseling').html(jsonData.crossSelling);
@@ -381,13 +384,9 @@ var ajaxCart = {
                     $(callerElement).removeProp('disabled');
             }
         });
-   },
-    // add from rpmoreproductscontentmoduleexpand
-    addpack: function(
-            ajax_product,
-            ajax_pack) {
+
+// add from rpmoreproductscontentmoduleexpand
         if (typeof ajax_product !== 'undefined') {
-            console.log('product=' + ajax_product + '&pack=' + ajax_pack);
             $.ajax({
                 type: 'POST',
                 headers: {"cache-control": "no-cache"},
@@ -405,7 +404,8 @@ var ajaxCart = {
                     console.log(XMLHttpRequest);
                 }
             });
-    }
+        }
+
     },
     //remove a product from the cart via ajax
     remove: function(idProduct, idCombination, customizationId, idAddressDelivery) {
